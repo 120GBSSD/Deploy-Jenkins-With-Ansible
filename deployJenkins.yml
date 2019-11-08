@@ -114,3 +114,28 @@
     - wait_for:
         port: 8080
     
+- name: Jenkins Server Firewall
+  hosts:
+    - jenkins
+  gather_facts: true
+  become: yes
+  tags: [jenkins]
+  
+  tasks:
+    - name: Permit OpenSSH
+      action: ufw rule=allow name=OpenSSH delete=no
+      when:
+        - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
+
+    - name: Permit Jenkins
+      action: ufw rule=allow name=jenkins delete=no
+      when:
+        - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
+   
+    - name: Enable UFW
+      action: ufw state=enabled
+      when:
+        - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
+
+    - wait_for:
+        port: 8080
