@@ -27,8 +27,7 @@
     - name: Add Aptitude
       action: apt pkg=aptitude force_apt_get=True  state=present
       when: 
-        - (ansible_facts['distribution'] == "Ubuntu") or
-        - (ansible_facts['distribution'] == "Debian")
+        - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
 
  # Update & Upgrade all packages
     - name: Upgrade all packages
