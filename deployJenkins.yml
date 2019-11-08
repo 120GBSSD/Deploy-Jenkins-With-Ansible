@@ -128,7 +128,7 @@
         - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
 
     - name: Permit Jenkins
-      action: ufw rule=allow name=Jenkins delete=no
+      action: ufw rule=allow port='8080' delete=no
       when:
         - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
    
