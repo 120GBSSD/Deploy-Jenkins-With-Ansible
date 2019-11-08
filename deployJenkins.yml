@@ -7,7 +7,7 @@
   tags: [jenkins]
 
   tasks:
-    # Adding universe repo
+    # Adding universe repo Ubuntu
     - name: Add universe repo
       action: apt_repository repo='deb http://archive.ubuntu.com/ubuntu/ bionic universe' state=present
       when: 
@@ -27,31 +27,39 @@
     - name: Add Aptitude
       action: apt pkg=aptitude force_apt_get=True  state=present
       when: 
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
  # Update & Upgrade all packages
     - name: Upgrade all packages
       action: apt upgrade=dist
       when:
-        ansible_facts['distribution'] == "Ubuntu"
+        ansible_facts['distribution'] == "Ubuntu" or
+        ansible_facts['distribution'] == "Debian"
 
     - name: Update all packages
       action: apt pkg="*" state=latest
       when:
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     # Installing open vmware tools
     - name: installing open-vmware-tools
       action: apt pkg=open-vm-tools state=latest
       when:
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
+        - ansible_facts['ansible_virtualization_type'] == "VMware"
 
     # Installing Java 11 on system
     - set_fact: java_package=java-11-openjdk
       when: ansible_facts['distribution'] == "Centos"
 
     - set_fact: java_package=openjdk-11-jre
-      when: ansible_facts['distribution'] == "Ubuntu"
+      when: 
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
+
 
     - name: Install openjdk
       action: yum name={{ java_package }} state=latest
@@ -61,7 +69,8 @@
     - name: Install openjdk
       action: apt pkg={{ java_package }} state=present
       when: 
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
 
 - name: Jenkins Server Installation
@@ -73,39 +82,40 @@
   
   tasks:
     - name: Add jenkins key
-      apt_key:
-        url: https://pkg.jenkins.io/debian/jenkins-ci.org.key
-        state: present
+      action: apt_key url=https://pkg.jenkins.io/debian/jenkins-ci.org.key state=present
+      when:
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     - name: Add jenkins repository
       action: apt_repository repo='deb https://pkg.jenkins.io/debian binary/' update_cache=yes state=present
       when: 
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
     
     - name: Upgrade all packages
       action: apt pkg="*" state=latest
       when:
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     - name: update all packages
       action: apt upgrade=dist
       when:
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     - name: Install jenkins
-      apt:
-        name: jenkins
-        state: present
-
-    - name: Stop jenkins server
-      service:
-        name: jenkins
-        state: started
+      action: apt name=jenkins state=present
+      when:
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     - name: Update all packages
       action: apt pkg="*" state=latest
       when:
-        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution'] == "Ubuntu" or
+        - ansible_facts['distribution'] == "Debian"
 
     - name: Get Admin Password
       become: yes
