@@ -45,7 +45,6 @@
       action: apt pkg=open-vm-tools state=latest
       when:
         - ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
-        - ansible_facts['ansible_virtualization_role'] == "guest"
 
     # Installing Java 11 on system
     - set_fact: java_package=java-11-openjdk
