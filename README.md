@@ -1,3 +1,9 @@
+Completed:
+Ubuntu - Completed
+Debian - Testing
+Redhat - Configuring
+Centos - Configuring
+
 To deploy jenkins using this ansible script make sure you 
 have ansible installed on the controller node or local machine
 
