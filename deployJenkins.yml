@@ -1,0 +1,117 @@
+---
+- name: Jenkins Server Pre-Configuration
+  hosts:
+          - jenkins
+  gather_facts: true
+  become: yes
+  tags: [jenkins]
+
+  tasks:
+    # Adding universe repo
+    - name: Add universe repo
+      action: apt_repository repo='deb http://archive.ubuntu.com/ubuntu/ bionic universe' state=present
+      when: 
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Add universe updates
+      action: apt_repository repo='deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe' state=present
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Add universe security
+      action: apt_repository repo='deb http://security.ubuntu.com/ubuntu/ bionic-security universe' state=present
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    # Installing Aptitude     
+    - name: Add Aptitude
+      action: apt pkg=aptitude force_apt_get=True  state=present
+      when: 
+        - ansible_facts['distribution'] == "Ubuntu"
+
+ # Update & Upgrade all packages
+    - name: Upgrade all packages
+      action: apt upgrade=dist
+      when:
+        ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Update all packages
+      action: apt pkg="*" state=latest
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    # Installing open vmware tools
+    - name: installing open-vmware-tools
+      action: apt pkg=open-vm-tools state=latest
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    # Installing Java 11 on system
+    - set_fact: java_package=java-11-openjdk
+      when: ansible_facts['distribution'] == "Centos"
+
+    - set_fact: java_package=openjdk-11-jre
+      when: ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Install openjdk
+      action: yum name={{ java_package }} state=latest
+      when:
+        - ansible_facts['distribution'] == "Centos"
+
+    - name: Install openjdk
+      action: apt pkg={{ java_package }} state=present
+      when: 
+        - ansible_facts['distribution'] == "Ubuntu"
+
+
+- name: Jenkins Server Installation
+  hosts:
+    - jenkins
+  gather_facts: true
+  become: yes
+  tags: [jenkins]
+  
+  tasks:
+    - name: Add jenkins key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins-ci.org.key
+        state: present
+
+    - name: Add jenkins repository
+      action: apt_repository repo='deb https://pkg.jenkins.io/debian binary/' update_cache=yes state=present
+      when: 
+        - ansible_facts['distribution'] == "Ubuntu"
+    
+    - name: Upgrade all packages
+      action: apt pkg="*" state=latest
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    - name: update all packages
+      action: apt upgrade=dist
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Install jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Stop jenkins server
+      service:
+        name: jenkins
+        state: started
+
+    - name: Update all packages
+      action: apt pkg="*" state=latest
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+
+    - name: Get Admin Password
+      become: yes
+      become_method: sudo
+      command: cat /var/lib/jenkins/secrets/initialAdminPassword
+
+    - wait_for:
+        port: 8080
+    
